@@ -1,10 +1,12 @@
 /**
  * Type definitions for encoding the institutional OB protocol as data.
  *
- * Design principle: the protocol lives in data, never in application logic.
- * Every rule carries the verbatim source text it came from, so the UI can
- * always show a resident *why* an item appeared and let them check it
- * against the original document.
+ * Two design principles:
+ *
+ * 1. The protocol lives in data, never in application logic, so it can be
+ *    updated and audited without touching code.
+ * 2. Every rule carries reasoning. This is a teaching tool, so a plan item
+ *    that appears without an explanation of *why* has failed at its job.
  */
 
 // ---------------------------------------------------------------------------
@@ -51,10 +53,11 @@ export type Condition =
   | { field: string; lte: number }
   | { field: string; in: (string | number)[] }
   /**
-   * Escape hatch for criteria the protocol states but that cannot be
-   * evaluated from intake data alone (e.g. "if poorly controlled").
-   * The engine treats these as *possible* matches and surfaces them to the
-   * user as a question rather than silently firing or silently dropping.
+   * Criteria the protocol states but that cannot be evaluated from intake
+   * data alone (e.g. "if poorly controlled"). The engine treats these as
+   * *provisional* matches: the item appears on the plan immediately, marked
+   * unresolved, rather than blocking plan generation behind a question.
+   * See `Rule.assumption` for what the plan shows in the meantime.
    */
   | { askUser: string };
 
@@ -72,9 +75,7 @@ export type Timing =
   /** Fires as soon as the condition is known, not at a fixed GA. */
   | { kind: 'atDiagnosis' }
   /** Ongoing, assessed at each encounter. */
-  | { kind: 'everyVisit' }
-  /** Postpartum rather than antepartum. */
-  | { kind: 'postpartum'; note?: string };
+  | { kind: 'everyVisit' };
 
 // ---------------------------------------------------------------------------
 // Antenatal testing
@@ -86,14 +87,14 @@ export type Timing =
  *   Biweekly antenatal monitoring = NST x2, MVP x1
  *
  * Note: the document uses "biweekly" to mean *twice weekly*, not
- * every-other-week. Encoded explicitly so the UI can render it unambiguously.
+ * every-other-week. Encoded explicitly so the UI never has to guess.
  */
 export type TestingFrequency = 'weekly' | 'twiceWeekly';
 
 export interface AntenatalTesting {
   start: GA;
   frequency: TestingFrequency;
-  /** Set when the protocol qualifies the start, e.g. "1-2 weeks before previous stillbirth". */
+  /** Qualifies the start, e.g. "1-2 weeks before previous stillbirth". */
   startNote?: string;
 }
 
@@ -116,9 +117,9 @@ export interface DeliveryRecommendation {
   action: DeliveryAction;
   earliest?: GA;
   latest?: GA;
-  /** Human-readable indication, shown on the timeline bar. */
+  /** Shown on the timeline bar so overlapping windows are self-explanatory. */
   indication: string;
-  /** Set when the protocol makes timing contingent on a factor we can't compute. */
+  /** Set when timing is contingent on something the engine cannot compute. */
   caveat?: string;
 }
 
@@ -127,10 +128,10 @@ export interface DeliveryRecommendation {
 // ---------------------------------------------------------------------------
 
 /**
- * The protocol contains forks whose input doesn't exist at planning time
- * ("if previa still present on 36wk US..."). These are rendered on the
- * timeline as explicit pending decisions so a resident planning at 20 weeks
- * can see the fork coming, rather than the tool asserting one branch.
+ * Forks whose input doesn't exist at planning time ("if previa still present
+ * on 36wk US..."). Rendered on the timeline as explicit pending decisions so
+ * a resident planning at 20 weeks sees the fork coming, rather than the tool
+ * asserting one branch.
  */
 export interface PendingDecision {
   /** For forks tied to a gestational milestone, e.g. the 36wk ultrasound. */
@@ -146,15 +147,20 @@ export interface PendingDecision {
 // ---------------------------------------------------------------------------
 
 export interface Source {
+  /**
+   * `protocol`         — traceable to the FMC document.
+   * `standardGuidance` — not in the FMC document; added from established
+   *                      practice to fill a gap. The UI must distinguish
+   *                      these visibly so nothing added is mistaken for
+   *                      institutional policy.
+   */
+  origin: 'protocol' | 'standardGuidance';
   /** Heading in the source document, e.g. "Chronic HTN". */
   section: string;
-  page: number;
-  /**
-   * Verbatim text from the protocol, including its original typos.
-   * Displayed to the resident so they can verify the encoding against the
-   * source without leaving the app.
-   */
-  quote: string;
+  /** Page in the source PDF. Absent for `standardGuidance` items. */
+  page?: number;
+  /** Paraphrased from the source — readable, not a verbatim quote. */
+  text: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -190,23 +196,6 @@ export type RuleCategory =
   | 'delivery'
   | 'documentation';
 
-/**
- * A flag raised on a rule to communicate something about the *protocol
- * itself* rather than about the patient. These drive the "protocol gaps"
- * report — the artefact intended to support the case for updating guidance.
- */
-export interface ProtocolNote {
-  kind:
-    | 'ambiguous' // protocol states something imprecisely
-    | 'implicit' // protocol omits a condition that is clinically required
-    | 'external' // protocol defers to a document we don't have
-    | 'dated' // content may have been overtaken since the 2022/2023 edit
-    | 'framing'; // wording matters and must be preserved in the UI
-  note: string;
-  /** Concrete suggested change, phrased for discussion with attendings. */
-  proposedUpdate?: string;
-}
-
 export interface Rule {
   id: string;
   category: RuleCategory;
@@ -215,12 +204,25 @@ export interface Rule {
   /** Fuller instruction shown when the item is expanded. */
   detail?: string;
 
+  /**
+   * Why this recommendation exists — the teaching layer, in the resident's
+   * language. Required: an item with no reasoning has failed at its job.
+   */
+  rationale: string;
+
   /** When this rule applies to a patient. */
   trigger: Condition;
   /** Risk tier this rule contributes, if any. */
   tier?: RiskTier;
   /** Why the patient lands in that tier, in plain language. */
   tierReason?: string;
+
+  /**
+   * What the plan assumes while an `askUser` trigger is unresolved, so the
+   * plan is usable immediately and the question refines it rather than
+   * gating it.
+   */
+  assumption?: string;
 
   timing: Timing;
   testing?: AntenatalTesting;
@@ -233,12 +235,6 @@ export interface Rule {
    * print contradictory orders.
    */
   suppresses?: string[];
-  /**
-   * Rules that may recommend something different. Used to raise conflict
-   * flags; the engine never resolves these silently.
-   */
-  conflictsWith?: string[];
 
   source: Source;
-  protocolNotes?: ProtocolNote[];
 }
