@@ -3,8 +3,13 @@
 Interactive antenatal care planning for family medicine residents, built from the
 FMC OB Patient Care protocol (5_2022, edit 4/23).
 
+**Live: https://rpreble5.github.io/obtool/**
+
 **Prototype only. Not for clinical use.** No patient data leaves the browser —
 there is no backend and nothing is stored.
+
+Deployed from `main` by `.github/workflows/deploy.yml` on every push. Pages is
+configured with Source: GitHub Actions.
 
 ## Run
 
