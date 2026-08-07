@@ -1056,7 +1056,8 @@ export const RULES: Rule[] = [
       'Flagged explicitly rather than omitted. A resident should not read the absence of pre-eclampsia guidance in this tool as meaning there is nothing to do — the guidance exists, it simply lives elsewhere.',
     trigger: { askUser: 'Has the patient developed gestational hypertension or pre-eclampsia?' },
     tier: 'high',
-    assumption: 'Not assumed present. Appears as a reference item only unless confirmed.',
+    assumeWhenUnresolved: false,
+    assumption: 'Not assumed present. Listed as conditional until confirmed.',
     timing: { kind: 'atDiagnosis' },
     source: {
       origin: 'protocol',
@@ -1077,21 +1078,96 @@ export const RULES: Rule[] = [
     tier: 'high',
     tierReason: 'Chronic hypertension',
     timing: { kind: 'recurring', start: { w: 0 }, interval: 'every 3-4 weeks' },
-    testing: { start: { w: 32 }, frequency: 'weekly', startNote: 'If controlled on medication' },
-    assumption:
-      'Assumes controlled on medication — weekly testing from 32wks, delivery 37w0d-39w6d. Well controlled off medication needs no antenatal testing and delivers 38w0d-39w6d; uncontrolled on medication needs twice-weekly testing from 32wks.',
+    source: {
+      origin: 'protocol',
+      section: 'Chronic HTN',
+      page: 5,
+      text: 'Chronic hypertension is BP over 140/90 on two separate occasions more than 3 hours apart before 20wks. Stop ACE inhibitors, ARBs, diuretics and statins. Baseline pre-eclampsia labs at diagnosis, then every 3-4 weeks. Aspirin 81 mg from 12-36wks.',
+    },
+  },
+  {
+    id: 'chronic-htn-off-meds',
+    category: 'delivery',
+    title: 'Chronic HTN — well controlled without medication',
+    rationale:
+      'No antenatal testing is required when blood pressure is controlled without medication, and delivery can wait a week longer than for patients needing treatment. The protocol notes this should now be a rare situation.',
+    trigger: {
+      all: [
+        { field: 'chronicHypertension', eq: true },
+        { field: 'bpControl', eq: 'controlledOffMeds' },
+      ],
+    },
+    tier: 'high',
+    timing: { kind: 'atDiagnosis' },
+    delivery: {
+      action: 'deliverBy',
+      earliest: { w: 38 },
+      latest: { w: 39, d: 6 },
+      indication: 'Chronic HTN, controlled without medication',
+    },
+    source: {
+      origin: 'protocol',
+      section: 'Chronic HTN',
+      page: 5,
+      text: 'Well controlled off medication: no antenatal testing. Delivery 38w0d-39w6d.',
+    },
+  },
+  {
+    id: 'chronic-htn-on-meds',
+    category: 'delivery',
+    title: 'Chronic HTN — controlled on medication',
+    rationale:
+      'Needing medication marks enough placental risk to justify weekly surveillance from 32wks and delivery up to two weeks earlier than an untreated patient. Position within the window depends on how well controlled.',
+    trigger: {
+      all: [
+        { field: 'chronicHypertension', eq: true },
+        { field: 'bpControl', eq: 'controlledOnMeds' },
+      ],
+    },
+    tier: 'high',
+    timing: { kind: 'atDiagnosis' },
+    testing: { start: { w: 32 }, frequency: 'weekly' },
     delivery: {
       action: 'deliverBy',
       earliest: { w: 37 },
       latest: { w: 39, d: 6 },
-      indication: 'Chronic HTN on medication',
+      indication: 'Chronic HTN, controlled on medication',
       caveat: 'Position within the window depends on how well controlled.',
     },
     source: {
       origin: 'protocol',
       section: 'Chronic HTN',
       page: 5,
-      text: 'Chronic hypertension is BP over 140/90 on two separate occasions more than 3 hours apart before 20wks. Antenatal testing: none if well controlled off medication; weekly from 32wks if controlled on medication; twice weekly from 32wks if uncontrolled on medication. Delivery at 37w0d-39w6d if on medication, or 38w0d-39w6d if not. Aspirin 81 mg from 12-36wks. Growth ultrasound when indicated or at 32wks.',
+      text: 'Controlled on medication: weekly antenatal testing from 32wks. Delivery 37w0d-39w6d depending on control.',
+    },
+  },
+  {
+    id: 'chronic-htn-uncontrolled',
+    category: 'delivery',
+    title: 'Chronic HTN — uncontrolled on medication',
+    rationale:
+      'Persistent hypertension despite treatment doubles the surveillance frequency and pushes delivery toward the early end of the window, since the placental insult is ongoing.',
+    trigger: {
+      all: [
+        { field: 'chronicHypertension', eq: true },
+        { field: 'bpControl', eq: 'uncontrolledOnMeds' },
+      ],
+    },
+    tier: 'high',
+    timing: { kind: 'atDiagnosis' },
+    testing: { start: { w: 32 }, frequency: 'twiceWeekly' },
+    delivery: {
+      action: 'deliverBy',
+      earliest: { w: 37 },
+      latest: { w: 39, d: 6 },
+      indication: 'Chronic HTN, uncontrolled on medication',
+      caveat: 'Poor control argues for the earlier end of the window.',
+    },
+    source: {
+      origin: 'protocol',
+      section: 'Chronic HTN',
+      page: 5,
+      text: 'Uncontrolled on medication: twice-weekly antenatal testing from 32wks. Delivery 37w0d-39w6d depending on control.',
     },
   },
   {
@@ -1485,7 +1561,8 @@ export const RULES: Rule[] = [
       'Patients returned to family medicine after MFM review are not simply back to routine care — they keep a regular fellow clinic presence, alternating with other providers.',
     trigger: { askUser: 'Has this patient been seen by MFM and returned to family medicine for care?' },
     tier: 'high',
-    assumption: 'Not assumed. Appears only if confirmed.',
+    assumeWhenUnresolved: false,
+    assumption: 'Not assumed. Listed as conditional until confirmed.',
     timing: { kind: 'recurring', start: { w: 0 }, interval: 'regularly, alternating with other providers' },
     source: {
       origin: 'protocol',

@@ -29,6 +29,9 @@ export const gaDays = (g: GA): number => g.w * 7 + (g.d ?? 0);
 export const gaFormat = (g: GA): string =>
   g.d ? `${g.w}w${g.d}d` : `${g.w} weeks`;
 
+/** Always `39w0d`. Used wherever ages are compared or tabulated. */
+export const gaShort = (g: GA): string => `${g.w}w${g.d ?? 0}d`;
+
 // ---------------------------------------------------------------------------
 // Trigger conditions
 // ---------------------------------------------------------------------------
@@ -223,6 +226,13 @@ export interface Rule {
    * gating it.
    */
   assumption?: string;
+  /**
+   * Whether an unresolved trigger should be assumed true and the item placed
+   * on the plan. Defaults to true. Set false where assuming the condition
+   * would put something on the plan that probably does not apply — those
+   * items are listed separately as conditional rather than scheduled.
+   */
+  assumeWhenUnresolved?: boolean;
 
   timing: Timing;
   testing?: AntenatalTesting;
