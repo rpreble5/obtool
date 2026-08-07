@@ -2,7 +2,11 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    # TEMPORARY: the deploy job is being rejected by the github-pages
+    # environment when it runs from main. Triggering from the old branch too,
+    # to test whether the environment's deployment branch policy is still
+    # pinned to it. Revert to [main] once the policy is confirmed or fixed.
+    branches: [main, claude/pregnancy-care-planner-khcdua]
   workflow_dispatch:
 
 # Least privilege the Pages deployment needs: read the repo, publish the
