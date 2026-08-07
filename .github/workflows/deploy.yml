@@ -2,7 +2,10 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/pregnancy-care-planner-khcdua]
+    # Both branches during the move to main. The github-pages environment can
+    # restrict deploys to the default branch, so keeping the original branch
+    # here means the site still publishes until main is made default.
+    branches: [main, claude/pregnancy-care-planner-khcdua]
   workflow_dispatch:
 
 # Least privilege the Pages deployment needs: read the repo, publish the
