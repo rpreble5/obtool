@@ -2,10 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    # Both branches during the move to main. The github-pages environment can
-    # restrict deploys to the default branch, so keeping the original branch
-    # here means the site still publishes until main is made default.
-    branches: [main, claude/pregnancy-care-planner-khcdua]
+    branches: [main]
   workflow_dispatch:
 
 # Least privilege the Pages deployment needs: read the repo, publish the
@@ -40,11 +37,11 @@ jobs:
 
       - run: npm run build
 
-      # enablement creates the Pages site through the API if it does not exist,
-      # so the repo does not have to be configured by hand first.
+      # Pages must already be enabled with Source: GitHub Actions in repository
+      # settings. enablement: true does not work here — creating a Pages site
+      # needs admin rights that GITHUB_TOKEN does not have, so it fails with
+      # "Resource not accessible by integration".
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
