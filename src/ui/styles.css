@@ -176,86 +176,127 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ------------------------------------------------------------ intake board */
 
-.measures { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+/* The intake pane is a three-row grid: sliders, a fixed context strip, then
+   the board. Only the board scrolls, so nothing above it can ever move. */
+.pane.intake {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 12px;
+  padding: 14px 16px 20px;
+  align-content: start;
+}
 
-.stepper {
-  display: flex; align-items: center; gap: 0;
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+.sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+
+.slider-row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; }
+.slider-row > b {
+  font: 620 10px/1 var(--sans); color: var(--faint);
+  text-transform: uppercase; letter-spacing: 0.07em;
+}
+.slider-val { font: 600 15px/1 var(--mono); white-space: nowrap; }
+.slider-val em {
+  font: 450 9.5px/1 var(--sans); font-style: normal; color: var(--faint);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-left: 5px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 2px;
+  background: var(--line-strong); outline-offset: 4px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--card); cursor: pointer;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--card); cursor: pointer;
+}
+
+/* Always occupies its line, empty or not. */
+.slider-caption {
+  min-height: 15px; margin-left: 40px;
+  font: 500 10.5px/15px var(--sans); color: var(--accent);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Fixed height by design — this is what stops the board from reflowing. */
+.context {
+  height: 76px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--r) var(--r) 0;
+  background: var(--card);
+  padding: 9px 12px;
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.context-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.context-head > span:first-child { font-size: 12.5px; font-weight: 600; margin-right: 2px; }
+.context-why {
+  margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--muted);
   overflow: hidden;
 }
-.stepper > b {
-  font: 450 10.5px/1 var(--sans);
-  color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em;
-  padding: 0 10px 0 11px;
-}
-.stepper button {
-  border: 0; background: transparent; width: 28px; height: 32px;
-  color: var(--muted); font-size: 15px; line-height: 1;
-}
-.stepper button:hover { background: var(--card-2); color: var(--ink); }
-.stepper .val { font: 600 14px/1 var(--mono); min-width: 34px; text-align: center; }
-.stepper .unit { font-size: 11px; color: var(--faint); padding-right: 10px; }
+.context-hint { margin: auto 0; font-size: 12px; color: var(--faint); }
 
-.group { margin-bottom: 18px; }
+.opt {
+  border: 1px solid var(--line); background: var(--card-2);
+  border-radius: 5px; padding: 3px 9px; font-size: 11.5px; color: var(--muted);
+}
+.opt[aria-pressed="true"] {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--accent-soft); font-weight: 600;
+}
+.opt-num { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: var(--faint); }
+.opt-num input[type="range"] { width: 90px; }
+.opt-num b { font: 600 12px/1 var(--mono); color: var(--ink); }
+
+.board { overflow-y: auto; align-content: start; }
+
+.group { margin-bottom: 14px; }
 .group > h3 {
-  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--faint); font-weight: 620; margin: 0 0 8px;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--faint); font-weight: 700; margin: 0 0 6px;
 }
 
-.tiles { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Fixed grid rather than flex-wrap: tiles keep their position and width no
+   matter what their captions say. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  gap: 5px;
+}
 
 .tile {
   border: 1px solid var(--line);
   background: var(--card);
   color: var(--muted);
   border-radius: var(--r);
-  padding: 7px 12px;
-  font-size: 12.5px;
-  font-weight: 500;
-  transition: background .12s, border-color .12s, color .12s;
+  padding: 6px 9px;
+  text-align: left;
+  display: flex; flex-direction: column; justify-content: center; gap: 1px;
+  min-height: 42px;
+  transition: background .1s, border-color .1s, color .1s;
 }
 .tile:hover { border-color: var(--line-strong); color: var(--ink); }
+.tile.focused { border-color: var(--accent); }
 .tile[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-  font-weight: 560;
+  background: var(--accent); border-color: var(--accent); color: #fff;
 }
 @media (prefers-color-scheme: dark) {
   .tile[aria-pressed="true"] { color: #06181a; }
 }
 
-.subrow {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  margin: 6px 0 2px 14px; padding-left: 12px;
-  border-left: 2px solid var(--accent-soft);
+.t-label { font-size: 12px; font-weight: 520; line-height: 1.25; }
+/* Reserved on every tile, so a caption appearing never resizes anything. */
+.t-state {
+  min-height: 12px;
+  font: 500 10px/12px var(--sans);
+  opacity: .78;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.subrow > b {
-  font: 450 10.5px/1 var(--sans); color: var(--faint);
-  text-transform: uppercase; letter-spacing: 0.06em;
-}
-.opt {
-  border: 1px solid var(--line); background: var(--card);
-  border-radius: 5px; padding: 5px 10px; font-size: 12px; color: var(--muted);
-}
-.opt[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 560; }
-
-.derived {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
-}
-.derived-chip {
-  font-size: 11.5px; padding: 5px 10px; border-radius: 999px;
-  background: var(--card-2); border: 1px dashed var(--line-strong); color: var(--muted);
-}
-
-.field-why {
-  font-size: 11.5px; line-height: 1.5; color: var(--muted);
-  background: var(--card-2); border: 1px solid var(--line);
-  border-left: 2px solid var(--accent);
-  border-radius: 0 var(--r) var(--r) 0;
-  padding: 8px 11px; margin: 6px 0 2px 14px;
-}
-.field-why em { font-style: normal; color: var(--ink); font-weight: 560; }
 
 /* ------------------------------------------------------------- plan panel */
 
