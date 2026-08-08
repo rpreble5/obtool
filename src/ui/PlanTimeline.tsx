@@ -167,6 +167,7 @@ export function PlanTimeline({ plan }: { plan: Plan }) {
         )}
       </div>
 
+      <div className="planscroll">
       <div className="tlv-head">
         <span>Standard care</span>
         <span />
@@ -292,6 +293,7 @@ export function PlanTimeline({ plan }: { plan: Plan }) {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }

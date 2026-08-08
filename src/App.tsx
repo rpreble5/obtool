@@ -52,7 +52,7 @@ export function App() {
         <div className="spacer" />
 
         <span className="tier-badge" style={{ color: `var(--t-${tier})` }} title={tierAction[tier]}>
-          <span className="dot" />
+          <span className="badge-dot" />
           {TIER_LABEL[tier]}
         </span>
 
