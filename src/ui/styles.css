@@ -8,6 +8,11 @@
    Deliberately not hospital blue: the ground is tinted rather than white,
    contrast is kept low, and the accent is violet-leaning rather than cyan.
 
+   Light only. A prefers-color-scheme block used to flip the whole app to a
+   dark palette on systems set to dark, which meant the app looked nothing
+   like its intended design for those users. Reinstate only as an explicit
+   in-app toggle, never as an automatic switch.
+
    Rules the layout must keep:
    - Nothing moves when something is selected. Detail and sub-options live in
      fixed-height strips; tiles reserve their caption line.
@@ -38,28 +43,6 @@
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --r: 6px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12151c;
-    --surface: #1a1e27;
-    --surface-2: #222733;
-    --line: #2a303c;
-    --line-2: #3a4252;
-    --ink: #e3e7ee;
-    --muted: #949caa;
-    --faint: #6c7482;
-
-    --accent: #97a0e0;
-    --accent-soft: #1e2340;
-    --accent-line: #3d4573;
-
-    --t-all: #98a1af;
-    --t-moderate: #c7a85f;
-    --t-high: #ce8c79;
-    --t-veryHigh: #c0728f;
-  }
 }
 
 * { box-sizing: border-box; }
@@ -413,7 +396,6 @@ input[type="range"]::-moz-range-thumb {
   white-space: nowrap; overflow: visible;
 }
 .tl-bar > span { display: block; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; }
-@media (prefers-color-scheme: dark) { .tl-bar { color: #171a2c; } }
 .tl-bar.ambient {
   background: var(--accent-soft); color: var(--muted);
   border: 1px dashed var(--accent-line); line-height: 14px;
