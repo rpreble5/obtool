@@ -168,6 +168,13 @@ export interface PlanItem {
 
   /** Set when another rule cancelled this one. Kept for display, not dropped. */
   suppressedBy?: { ruleId: string; title: string; rationale: string };
+
+  /**
+   * True when this item would appear for any pregnancy, false when it is here
+   * because of something about this patient. Derived rather than hand-tagged:
+   * see `standardRuleIds`. This is what the plan splits on.
+   */
+  standard: boolean;
 }
 
 export interface TierAssignment {
@@ -212,12 +219,29 @@ export interface Plan {
 
 const TIER_ORDER: RiskTier[] = ['all', 'moderate', 'high', 'veryHigh'];
 
+/**
+ * The baseline plan: whatever fires for a patient with no risk factors
+ * entered. Computed by running the triggers against an empty profile rather
+ * than tagging rules by hand, so it cannot drift out of step with the data.
+ * Provisional matches do not count — those are driven by unknowns, not by
+ * being universal.
+ */
+const standardRuleIds = (rules: Rule[]): Set<string> =>
+  new Set(
+    rules.filter((r) => evaluate(r.trigger, {}, {}) === true).map((r) => r.id),
+  );
+
+let STANDARD_IDS: Set<string> | null = null;
+
 export function generatePlan(
   profile: PatientProfile,
   answers: Record<string, boolean> = {},
   rules: Rule[] = RULES,
   today = new Date(),
 ): Plan {
+  const standardIds =
+    rules === RULES ? (STANDARD_IDS ??= standardRuleIds(RULES)) : standardRuleIds(rules);
+
   const fired: { rule: Rule; provisional: boolean }[] = [];
 
   for (const rule of rules) {
@@ -252,6 +276,7 @@ export function generatePlan(
       testing: rule.testing,
       delivery: rule.delivery,
       pendingDecisions: rule.pendingDecisions,
+      standard: standardIds.has(rule.id),
     };
 
     // Provisional rules that opt out of being assumed are held back from the

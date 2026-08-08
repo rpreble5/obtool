@@ -4,7 +4,7 @@ import { generatePlan } from './protocol/engine';
 import { PROTOCOL_META } from './protocol/rules';
 import { tierAction, type RiskTier } from './protocol/types';
 import { IntakeBoard } from './ui/IntakeBoard';
-import { PlanPanel } from './ui/PlanPanel';
+import { PlanTimeline } from './ui/PlanTimeline';
 import { Timeline } from './ui/Timeline';
 
 const TIER_LABEL: Record<RiskTier, string> = {
@@ -69,7 +69,7 @@ export function App() {
       {view === 'plan' ? (
         <div className="split">
           <IntakeBoard profile={profile} onChange={setProfile} />
-          <PlanPanel plan={plan} />
+          <PlanTimeline plan={plan} />
         </div>
       ) : (
         <Timeline plan={plan} />
