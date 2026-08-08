@@ -1,9 +1,12 @@
 /* =========================================================================
    OB Care Planner
 
-   Direction: quiet dashboard. Warm off-white ground, muted sage accent, and
-   a low-chroma tier scale (grey → ochre → clay → plum) so severity reads as
-   a gradient rather than an alarm.
+   Direction: cool and soft. Pale blue-grey ground, muted periwinkle accent.
+   Cool base with warm severity colours — the tier scale is the only warm
+   thing on screen, so escalation reads without needing to shout.
+
+   Deliberately not hospital blue: the ground is tinted rather than white,
+   contrast is kept low, and the accent is violet-leaning rather than cyan.
 
    Rules the layout must keep:
    - Nothing moves when something is selected. Detail and sub-options live in
@@ -13,49 +16,49 @@
    ========================================================================= */
 
 :root {
-  --bg: #faf9f7;
-  --surface: #ffffff;
-  --surface-2: #f4f4f0;
-  --line: #e7e6e0;
-  --line-2: #d5d4cc;
-  --ink: #22252a;
-  --muted: #6a6f76;
-  --faint: #9a9ea3;
+  --bg: #eef1f6;
+  --surface: #fbfcfe;
+  --surface-2: #f2f5fa;
+  --line: #dfe4ec;
+  --line-2: #c6cede;
+  --ink: #262b36;
+  --muted: #626b7c;
+  --faint: #98a1b0;
 
-  --accent: #4e7a64;
-  --accent-soft: #e8efea;
-  --accent-line: #b9cfc2;
+  --accent: #5d66ac;
+  --accent-soft: #e8eaf7;
+  --accent-line: #bcc2e4;
 
-  --t-all: #8a9099;
-  --t-moderate: #a2833f;
-  --t-high: #ae6b52;
-  --t-veryHigh: #8a5468;
+  --t-all: #8a93a3;
+  --t-moderate: #9e8347;
+  --t-high: #b26f5c;
+  --t-veryHigh: #9c4f6d;
 
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  --r: 5px;
+  --r: 6px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14161a;
-    --surface: #1b1e23;
-    --surface-2: #22262c;
-    --line: #2a2f36;
-    --line-2: #3a4048;
-    --ink: #e6e7e4;
-    --muted: #969ba1;
-    --faint: #6e7379;
+    --bg: #12151c;
+    --surface: #1a1e27;
+    --surface-2: #222733;
+    --line: #2a303c;
+    --line-2: #3a4252;
+    --ink: #e3e7ee;
+    --muted: #949caa;
+    --faint: #6c7482;
 
-    --accent: #7fb098;
-    --accent-soft: #1e2e27;
-    --accent-line: #35564696;
+    --accent: #97a0e0;
+    --accent-soft: #1e2340;
+    --accent-line: #3d4573;
 
-    --t-all: #99a0a8;
-    --t-moderate: #c9a85f;
-    --t-high: #c98f73;
-    --t-veryHigh: #b57c90;
+    --t-all: #98a1af;
+    --t-moderate: #c7a85f;
+    --t-high: #ce8c79;
+    --t-veryHigh: #c0728f;
   }
 }
 
@@ -410,7 +413,7 @@ input[type="range"]::-moz-range-thumb {
   white-space: nowrap; overflow: visible;
 }
 .tl-bar > span { display: block; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; }
-@media (prefers-color-scheme: dark) { .tl-bar { color: #10201a; } }
+@media (prefers-color-scheme: dark) { .tl-bar { color: #171a2c; } }
 .tl-bar.ambient {
   background: var(--accent-soft); color: var(--muted);
   border: 1px dashed var(--accent-line); line-height: 14px;
