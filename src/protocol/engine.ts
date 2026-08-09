@@ -142,6 +142,41 @@ export function dateAtGA(dating: Dating, ga: GA): Date {
 }
 
 // ---------------------------------------------------------------------------
+// Buckets
+// ---------------------------------------------------------------------------
+
+/**
+ * Where an item sits relative to today.
+ *
+ *   overdue — its window closed before today
+ *   now     — its window is open, or opens within the next week
+ *   future  — it opens later than that
+ *
+ * `overdue` means the window has passed, NOT that the item was missed. The
+ * tool has no record of what was actually done, so the wording in the UI has
+ * to stay "window passed", never "you failed to do this".
+ */
+export type Bucket = 'overdue' | 'now' | 'future';
+
+/** How far ahead counts as "this week". */
+const SOON_DAYS = 7;
+const TERM = 42 * 7;
+
+export function bucketOf(t: Timing, nowDays: number): Bucket {
+  // Not tied to a gestational age: actionable as soon as the condition is
+  // known, so it always belongs in the current bucket.
+  if (t.kind === 'atDiagnosis' || t.kind === 'everyVisit') return 'now';
+
+  const start = gaDays(t.start);
+  const end =
+    'end' in t && t.end ? gaDays(t.end) : t.kind === 'recurring' ? TERM : start;
+
+  if (nowDays > end) return 'overdue';
+  if (nowDays >= start - SOON_DAYS) return 'now';
+  return 'future';
+}
+
+// ---------------------------------------------------------------------------
 // Plan
 // ---------------------------------------------------------------------------
 
@@ -175,6 +210,15 @@ export interface PlanItem {
    * see `standardRuleIds`. This is what the plan splits on.
    */
   standard: boolean;
+
+  /** Overdue / now / future, relative to today's gestational age. */
+  bucket: Bucket;
+
+  /**
+   * Profile fields that are set and that this rule's trigger actually reads.
+   * The exact answer to "which inputs caused this item".
+   */
+  causedBy: string[];
 }
 
 export interface TierAssignment {
@@ -239,6 +283,8 @@ export function generatePlan(
   rules: Rule[] = RULES,
   today = new Date(),
 ): Plan {
+  const dating = computeDating(profile, today);
+
   const standardIds =
     rules === RULES ? (STANDARD_IDS ??= standardRuleIds(RULES)) : standardRuleIds(rules);
 
@@ -277,6 +323,10 @@ export function generatePlan(
       delivery: rule.delivery,
       pendingDecisions: rule.pendingDecisions,
       standard: standardIds.has(rule.id),
+      bucket: dating ? bucketOf(rule.timing, dating.currentGaDays) : 'future',
+      causedBy: [...new Set(fieldsIn(rule.trigger))].filter(
+        (f) => (profile as Record<string, unknown>)[f] !== undefined,
+      ),
     };
 
     // Provisional rules that opt out of being assumed are held back from the
@@ -368,7 +418,7 @@ export function generatePlan(
   const transfer = fired.find((f) => f.rule.id === 'mfm-multiple-gestation');
 
   return {
-    dating: computeDating(profile, today),
+    dating,
     items,
     suppressed,
     conditional,
