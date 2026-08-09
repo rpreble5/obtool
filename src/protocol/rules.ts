@@ -1337,18 +1337,21 @@ export const RULES: Rule[] = [
     category: 'referral',
     title: 'Accreta risk — MFM referral for ultrasound',
     rationale:
-      'A prior caesarean combined with previa is the classic accreta risk profile, and accreta needs to be identified antenatally because it changes where and how delivery happens entirely.',
+      'Accreta needs identifying antenatally because it changes where and how delivery happens entirely. The protocol casts the net wide: any previa counts, as does a prior caesarean with an anterior placenta — the scar and the placenta being in the same place is the mechanism, so previa is not required for that second route.',
     trigger: {
-      all: [{ field: 'priorCesarean', eq: true }, { field: 'placentaPrevia', eq: true }],
+      any: [
+        { field: 'placentaPrevia', eq: true },
+        { all: [{ field: 'priorCesarean', eq: true }, { field: 'anteriorPlacenta', eq: true }] },
+      ],
     },
     tier: 'veryHigh',
-    tierReason: 'Possible accreta — prior caesarean with previa',
+    tierReason: 'Possible accreta — previa, or prior caesarean with anterior placenta',
     timing: { kind: 'atDiagnosis' },
     source: {
       origin: 'protocol',
       section: 'Placenta Previa',
       page: 6,
-      text: 'Assess accreta risk — refer to MFM for ultrasound where there is a history of prior caesarean now with previa.',
+      text: 'Possible accreta covers all placenta previa, and any prior caesarean with an anterior placenta. Refer to MFM for ultrasound.',
     },
   },
   {
